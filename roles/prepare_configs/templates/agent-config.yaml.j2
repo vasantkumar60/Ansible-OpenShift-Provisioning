@@ -67,3 +67,35 @@ hosts:
 {% endfor %}
 {% endif %}
 {% endif %}
+{% if installation_type | lower == 'zvm' %}
+hosts:
+{% for item in range( zvm.nodes | length ) %}
+  - hostname: "{{ zvm.nodes[item].name }}"
+    role: "{% if zvm.nodes[item].interface.ip in env.cluster.nodes.control.ip %}master{% elif zvm.nodes[item].interface.ip in env.cluster.nodes.compute.ip %}worker{% endif %}"
+    interfaces:
+      - name: {{ zvm.nodes[item].interface.ifname }}
+        macAddress: "{{ zvm.nodes[item].interface.mac }}"
+    networkConfig:
+      interfaces:
+        - name: {{ zvm.nodes[item].interface.ifname }}
+          type: ethernet
+          state: up
+          mac-address: "{{ zvm.nodes[item].interface.mac }}"
+          ipv4:
+            enabled: true
+            address:
+              - ip: "{{ zvm.nodes[item].interface.ip }}"
+                prefix-length: 24
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "{{ env.bastion.networking.ip }}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "{{ env.bastion.networking.gateway }}"
+            next-hop-interface: {{ zvm.nodes[item].interface.ifname }}
+            table-id: 254
+{% endfor %}
+{% endif %}
