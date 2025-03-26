@@ -22,6 +22,7 @@ zvm:
           subchannels: 0.0.bdf0,0.0.bdf1,0.0.bdf2
           options: layer2=1
           ip:
+          mac:
 
         # Required if disk_type is dasd
         dasd:
